@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>EWU Degree Review</title>
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+    
+    <!-- Google Fonts - Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --bs-body-font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Loading Animation */
+        .loading-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 0.35rem solid rgba(13, 110, 253, 0.2);
+            border-top-color: #0d6efd;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        .loading-text {
+            font-size: 1.2rem;
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Main Styles */
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: #0d6efd;
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .header h1 i {
+            margin-right: 0.75rem;
+        }
+        
+        .header p.lead {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+            font-weight: 300;
+        }
+        
+        .main-container {
+            flex: 1;
+            padding-bottom: 2rem;
+        }
+        
+        .input-box {
+            width: 90%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        
+        .btn i, .nav-link i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Results Container */
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .student-info-card, .course-area {
+            background: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        table {
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        
+        th {
+            font-weight: 500;
+            background-color: #f8f9fa;
+        }
+        
+        .area-header {
+            font-size: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .area-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: #f8f9fa;
+            padding: 1.5rem 0;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9rem;
+        }
+        
+        .heart {
+            color: #dc3545;
+        }
+        
+        /* Responsive Adjustments */
+        @media (min-width: 768px) {
+            .header {
+                padding: 2rem 0;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .header p.lead {
+                font-size: 1.25rem;
+            }
+            
+            .input-box {
+                padding: 2rem;
+            }
+            
+            .student-info-card, .course-area {
+                padding: 1.75rem;
+            }
+            
+            table {
+                font-size: 1rem;
+            }
+            
+            .area-header {
+                font-size: 1.1rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-container" id="loadingIndicator">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Fetching student data...</div>
+    </div>
+
+    <!-- Header -->
+    <div class="header text-center">
+        <h1><i class="bi bi-mortarboard"></i>East West University</h1>
+        <p class="lead">Student Information & Degree Review</p>
+    </div>
+
+    <div class="main-container">
+        <div class="container">
+            <% if (!studentInfo && !degreeCourses) { %>
+                <!-- Search Form -->
+                <div class="input-box">
+                    <form id="studentForm" action="/get-student-info" method="POST">
+                        <div class="mb-3">
+                            <label for="studentId" class="form-label">
+                                <i class="bi bi-person-badge"></i> Student ID to Fetch Data
+                            </label>
+                            <input type="text" class="form-control" id="studentId" name="studentId" 
+                                   placeholder="XXXX-X-XX-XXX" required
+                                   pattern="\d{4}-\d-\d{2}-\d{3}" title="Format: XXXX-X-XX-XXX">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-cloud-download"></i> Fetch Student Data
+                        </button>
+                    </form>
+                </div>
+            <% } %>
+
+            <% if (error) { %>
+                <div class="alert alert-danger text-center" style="max-width: 500px; margin: 0 auto;">
+                    <i class="bi bi-exclamation-triangle"></i> <%= error %>
+                </div>
+            <% } %>
+
+            <!-- Results Section -->
+            <% if (studentInfo || degreeCourses) { %>
+                <div class="results-container">
+                    <!-- Return to Home Button (Top) -->
+                    <div class="d-flex justify-content-center mb-4">
+                        <a href="/" class="btn btn-outline-primary">
+                            <i class="bi bi-house-door"></i> Return to Home
+                        </a>
+                    </div>
+
+                    <!-- Student Information -->
+                    <% if (studentInfo) { %>
+                        <div class="student-info-card">
+                            <h3 class="h5 mb-3"><i class="bi bi-person-lines-fill"></i> Student Information</h3>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <th width="25%">Student ID</th>
+                                            <td><%= studentInfo.StudentId %></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Name</th>
+                                            <td><%= studentInfo.FirstName %></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Program</th>
+                                            <td><%= studentInfo.ProgramCurriculumName %></td>
+                                        </tr>
+                                        <tr>
+                                            <th>CGPA</th>
+                                            <td><%= studentInfo.CGPA.toFixed(2) %></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Credits Earned</th>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="progress flex-grow-1">
+                                                        <div class="progress-bar bg-success" 
+                                                             role="progressbar" 
+                                                             style="width: <%= (studentInfo.CrEarned / studentInfo.MinCr * 100) %>%;"
+                                                             aria-valuenow="<%= studentInfo.CrEarned %>" 
+                                                             aria-valuemin="0" 
+                                                             aria-valuemax="<%= studentInfo.MinCr %>">
+                                                            <%= studentInfo.CrEarned %>/<%= studentInfo.MinCr %>
+                                                        </div>
+                                                    </div>
+                                                    <span class="badge bg-primary ms-2">
+                                                        <%= ((studentInfo.CrEarned / studentInfo.MinCr) * 100).toFixed(1) %>%
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Remaining Credits</th>
+                                            <td><%= studentInfo.RemainingCr %></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    <% } %>
+
+                    <!-- Course Information -->
+                    <% if (degreeCourses) { %>
+                        <div class="mt-4">
+                            <h3 class="h5 mb-3"><i class="bi bi-journal-bookmark"></i> Course Information</h3>
+                            
+                            <% degreeCourses.forEach(area => { %>
+                                <% if (area.CourseView && area.CourseView.length > 0) { %>
+                                    <div class="course-area mb-4">
+                                        <div class="area-header d-flex justify-content-between align-items-center" 
+                                             data-bs-toggle="collapse" 
+                                             data-bs-target="#area-<%= area.CourseAreaId %>">
+                                            <span class="fw-bold"><%= area.Area %></span>
+                                            <div>
+                                                <span class="badge bg-primary">
+                                                    <%= area.TotalCreditsEarned %>/<%= area.TotalAreaCredits %> Credits
+                                                </span>
+                                                <% if (area.TotalRemainingCredits > 0) { %>
+                                                    <span class="badge bg-warning text-dark ms-2">
+                                                        <%= area.TotalRemainingCredits %> Remaining
+                                                    </span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="collapse show" id="area-<%= area.CourseAreaId %>">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover mt-2">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Code</th>
+                                                            <th>Course Name</th>
+                                                            <th>Credit</th>
+                                                            <th>Grade</th>
+                                                            <th>Grade Point</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% area.CourseView.forEach(course => { %>
+                                                            <tr>
+                                                                <td><%= course.CourseCode %></td>
+                                                                <td><%= course.CourseName %></td>
+                                                                <td><%= course.CreditEarn %></td>
+                                                                <td><%= course.Grade %></td>
+                                                                <td><%= course.GradePoint.toFixed(2) %></td>
+                                                            </tr>
+                                                        <% }); %>
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr class="table-secondary">
+                                                            <td colspan="2" class="text-end"><strong>Area Totals:</strong></td>
+                                                            <td><strong><%= area.TotalCreditsEarned %></strong></td>
+                                                            <td></td>
+                                                            <td><strong><%= area.TotalGradePoint.toFixed(2) %></strong></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } %>
+                            <% }); %>
+                        </div>
+                    <% } %>
+
+                    <!-- Return to Home Button (Bottom) -->
+                    <div class="d-flex justify-content-center mt-5 mb-3">
+                        <a href="/" class="btn btn-outline-primary">
+                            <i class="bi bi-house-door"></i> Return to Home
+                        </a>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p class="mb-0">Developed with <span class="heart">❤</span> by <strong>girlsboy</strong></p>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-shield-lock"></i> Personal Data Access Acknowledgement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>I acknowledge that I have been granted access to personal data belonging to another individual for transparency purposes only. I hereby consent and affirm that I will not misuse, disclose, replicate, or exploit this data in any form. I understand that any breach of this commitment may result in appropriate actions in accordance with applicable laws or agreements.</p>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> I don't agree & Return
+                    </button>
+                    <button type="button" class="btn btn-primary" id="proceedBtn">
+                        <i class="bi bi-check-circle"></i> I agree & Proceed
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      (function(){
+        const form = document.getElementById('studentForm');
+        const proceedBtn = document.getElementById('proceedBtn');
+        const modalEl = document.getElementById('confirmationModal');
+        const loading = document.getElementById('loadingIndicator');
+        if(!form || !proceedBtn || !modalEl) return;
+        const modal = new bootstrap.Modal(modalEl);
+        let confirmed = false;
+        let submitting = false;
+
+        form.addEventListener('submit', function(e){
+          if (submitting) { e.preventDefault(); return; }
+          if (!confirmed) {
+            e.preventDefault();
+            modal.show();
+          }
+        });
+
+        proceedBtn.addEventListener('click', function(){
+          confirmed = true;
+          submitting = true;
+          if (loading) loading.style.display = 'flex';
+          form.submit();
+          setTimeout(()=>{ submitting = false; }, 3000); // safety
+        });
+      })();
+    </script>
+</body>
+</html>

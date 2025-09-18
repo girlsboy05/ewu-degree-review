@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <style>
+    :root { --bs-body-font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    .count-badge { font-size: .95rem; }
+    .table-wrap { overflow-x:auto; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+        <i class="bi bi-search"></i><span>EWU Portal</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div id="nav" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link active" aria-current="page" href="/search-logs">Search Logs</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-4">
+    <div class="page-header">
+      <div>
+        <h1 class="h3 mb-1"><i class="bi bi-journal-text me-2"></i>Search Logs</h1>
+        <div class="text-muted">Which ID was searched and when.</div>
+      </div>
+      <div class="count-badge">
+        <span class="badge text-bg-primary">
+          <i class="bi bi-hash me-1"></i><span id="totalCount">0</span> total
+        </span>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <form id="filterForm" class="row g-2 align-items-end">
+          <div class="col-12 col-sm-6 col-md-3">
+            <label for="from" class="form-label">From date</label>
+            <input type="date" id="from" name="from" class="form-control" />
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <label for="to" class="form-label">To date</label>
+            <input type="date" id="to" name="to" class="form-control" />
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-funnel me-2"></i>Apply Filter
+            </button>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <button type="button" id="clearBtn" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle me-2"></i>Clear
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <div class="table-wrap">
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th style="min-width:180px;"><i class="bi bi-123 me-2"></i>Searched ID</th>
+                <th style="min-width:220px;"><i class="bi bi-clock-history me-2"></i>Searched At</th>
+              </tr>
+            </thead>
+            <tbody id="logsBody">
+              <tr><td colspan="2" class="text-muted">No logs yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="container my-4 text-center text-muted small">
+    <p class="mb-0">Developed with <span class="heart">❤</span> by <strong>girlsboy</strong></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    const bodyEl = document.getElementById("logsBody");
+    const totalEl = document.getElementById("totalCount");
+    const form = document.getElementById("filterForm");
+    const clearBtn = document.getElementById("clearBtn");
+
+    function fmt(dt) {
+      try { return new Date(dt).toLocaleString(); } catch { return dt; }
+    }
+
+    async function loadLogs(params = {}) {
+      const qs = new URLSearchParams(params);
+      const res = await fetch("/api/search-logs" + (qs.toString() ? "?" + qs.toString() : ""));
+      const data = await res.json();
+
+      totalEl.textContent = data.count ?? 0;
+      if (!data.items || data.items.length === 0) {
+        bodyEl.innerHTML = '<tr><td colspan="2" class="text-muted">No logs found for the selected range.</td></tr>';
+        return;
+      }
+      bodyEl.innerHTML = data.items.map(item => `
+        <tr>
+          <td><i class="bi bi-person-badge me-2"></i>${item.searchedId || "<em>—</em>"}</td>
+          <td><i class="bi bi-calendar-event me-2"></i>${fmt(item.searchedAt)}</td>
+        </tr>
+      `).join("");
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
+      const params = {};
+      if (from) params.from = from;
+      if (to) params.to = to;
+      loadLogs(params);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      document.getElementById("from").value = "";
+      document.getElementById("to").value = "";
+      loadLogs();
+    });
+
+    loadLogs();
+  </script>
+</body>
+</html>
